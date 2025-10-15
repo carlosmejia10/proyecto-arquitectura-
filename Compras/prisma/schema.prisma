@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model OrdenCompra {
+  id              String   @id @default(cuid())
+  solicitudId     String
+  descripcion     String
+  monto           Float
+  estado          Estado   @default(PENDIENTE)
+  aprobador       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum Estado {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}

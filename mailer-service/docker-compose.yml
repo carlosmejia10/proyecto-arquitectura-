@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pg-mailer
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mailer
+      POSTGRES_PASSWORD: mailer_pwd
+      POSTGRES_DB: mailerdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_mailer:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mailer -d mailerdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Opcional: pgAdmin web (GUI)
+  pgadmin:
+    image: dpage/pgadmin4:8.12
+    container_name: pgadmin-mailer
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mail.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata_mailer:
