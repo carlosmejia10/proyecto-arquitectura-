@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma.js';
+import { prisma } from '../db/prisma.js';
 
 export const OrdenRepository = {
   create: (data) => prisma.ordenCompra.create({ data }),

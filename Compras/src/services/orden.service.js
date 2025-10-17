@@ -2,11 +2,11 @@ import { OrdenRepository } from '../repositories/orden.repository.js';
 import { publishEvent } from '../lib/amqp.js';
 
 export const OrdenService = {
-  async crearOrden(payload) {
+  async crearOrden(dto) {
     const orden = await OrdenRepository.create({
-      solicitudId: payload.solicitudId,
-      descripcion: payload.descripcion,
-      monto: payload.monto
+      solicitudId: dto.solicitudId,
+      descripcion: dto.descripcion,
+      monto: dto.monto
     });
 
     publishEvent('compras.orden.creada', orden);

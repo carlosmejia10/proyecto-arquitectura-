@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  # 🐘 Base de datos PostgreSQL para Compras
+  compras-db:
+    image: postgres:16-alpine
+    container_name: compras-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: compras
+      POSTGRES_PASSWORD: compras_pwd
+      POSTGRES_DB: comprasdb
+    ports:
+      - "5433:5432"  # puerto local 5433 → interno 5432
+    volumes:
+      - compras_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U compras -d comprasdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # RabbitMQ (con consola de administración)
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: compras-rabbit
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # protocolo AMQP
+      - "15672:15672" # dashboard web
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  compras_data:
