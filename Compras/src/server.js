@@ -3,7 +3,9 @@ import { logger } from './lib/logger.js';
 import { connectRabbit } from './lib/amqp.js';
 import { prisma } from './lib/prisma.js';
 
-const port = process.env.PORT || 8082;
+await connectRabbit();
+
+const port = process.env.PORT || 8083;
 
 async function bootstrap() {
   try {

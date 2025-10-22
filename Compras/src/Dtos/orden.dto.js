@@ -1,15 +1,20 @@
 import Joi from 'joi';
-/**
- * DTO para validar y transformar los datos de creación de una orden
- */
+
+const Monedas = ['COP', 'USD', 'EUR'];
+
 export class CrearOrdenDTO {
   static schema = Joi.object({
     solicitudId: Joi.string().trim().required().messages({
       'any.required': 'El campo solicitudId es obligatorio.'
     }),
     descripcion: Joi.string().trim().required(),
-    monto: Joi.number().positive().required()
-  });
+    monto: Joi.number().positive().required(),
+
+    moneda: Joi.string().valid(...Monedas).default('COP'),
+    destinatario: Joi.string().email().optional(),
+    nombre: Joi.string().trim().max(120).optional()
+  })
+  .unknown(false);
 
   constructor(data) {
     const { error, value } = CrearOrdenDTO.schema.validate(data, { abortEarly: false });
@@ -23,13 +28,14 @@ export class CrearOrdenDTO {
   }
 }
 
-/**
- * DTO para aprobar una orden existente
- */
 export class AprobarOrdenDTO {
   static schema = Joi.object({
-    aprobador: Joi.string().trim().required()
-  });
+    aprobador: Joi.string().trim().required(),
+
+    moneda: Joi.string().valid(...Monedas).default('COP'),
+    destinatario: Joi.string().email().optional(),
+    nombre: Joi.string().trim().max(120).optional()
+  }).unknown(false);
 
   constructor(data) {
     const { error, value } = AprobarOrdenDTO.schema.validate(data, { abortEarly: false });
