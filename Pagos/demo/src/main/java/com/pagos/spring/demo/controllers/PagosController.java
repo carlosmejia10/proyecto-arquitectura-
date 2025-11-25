@@ -15,10 +15,10 @@ import java.util.List;
 
 @RestController
 public class PagosController {
-
+    private static final String URLPUBLICANGROK = "https://ragtimey-unpecked-granville.ngrok-free.dev";
     public PagosController() {
         // Configura tu Access Token (usa el de PRUEBAS)
-        MercadoPagoConfig.setAccessToken("TEST-8767910683876652-112421-75bd4e2e98eb83687ad2e685bf2bb499-539778771");
+        MercadoPagoConfig.setAccessToken("APP_USR-3929024855587074-112423-f909081a85de94c1c3d1081cca46b270-3013802509");
     }
 
     @GetMapping("/crear-pago")
@@ -35,16 +35,17 @@ public class PagosController {
 
            
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("https://localhost:13131/success")
-                    .failure("https://localhost:13131/failure")
-                    .pending("https://localhost:13131/pending")
+                    .success(URLPUBLICANGROK + "/pago/success")
+                    .failure(URLPUBLICANGROK + "/pago/failure")
+                    .pending(URLPUBLICANGROK + "/pago/pending")
                     .build();
 
             // 3. Crear la preferencia
             PreferenceRequest request = PreferenceRequest.builder()
                     .items(List.of(item))
                     .backUrls(backUrls)
-                    .autoReturn("approved")   // redirige automáticamente cuando se aprueba
+                    .autoReturn("approved")
+                    .notificationUrl(URLPUBLICANGROK + "/webhook/mp")   // redirige automáticamente cuando se aprueba
                     .build();
 
             // 4. Crear cliente
