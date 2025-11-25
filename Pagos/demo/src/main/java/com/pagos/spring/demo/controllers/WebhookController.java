@@ -1,7 +1,9 @@
 package com.pagos.spring.demo.controllers;
 
 import com.mercadopago.client.merchantorder.MerchantOrderClient;
+import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.resources.merchantorder.MerchantOrder;
+import com.mercadopago.resources.payment.Payment;
 import com.pagos.spring.demo.entities.Transaccion;
 import com.pagos.spring.demo.repositories.TransaccionRepository;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +25,9 @@ public class WebhookController {
 
         System.out.println("Webhook MP payload: " + body);
 
-        // 1) Intentar leer el formato nuevo: type + data.id
+        // -----------------------------
+        // 1) Obtener type + id
+        // -----------------------------
         String type = body.get("type") != null ? body.get("type").toString() : null;
         String idStr = null;
 
@@ -35,7 +39,7 @@ public class WebhookController {
             }
         }
 
-        // 2) Si no hay type, revisar formato viejo: topic + resource
+        // Soportar formato viejo: topic + resource
         if (type == null) {
             Object topicObj = body.get("topic");
             Object resourceObj = body.get("resource");
@@ -44,21 +48,21 @@ public class WebhookController {
                 type = topicObj.toString(); // merchant_order, payment, etc.
             }
             if (resourceObj != null) {
-                // Ej: https://api.mercadolibre.com/merchant_orders/35863890558
-                String resource = resourceObj.toString();
+                String resource = resourceObj.toString(); // .../merchant_orders/35863890558
                 String[] parts = resource.split("/");
                 idStr = parts[parts.length - 1];
             }
         }
 
-        if (type == null) {
-            type = "unknown";
-        }
+        if (type == null) type = "unknown";
 
         System.out.println("Webhook type=" + type + " id=" + idStr);
 
         try {
-            // Solo nos interesa merchant_order para actualizar transacciones por preferenceId
+
+            // ==============================================
+            // CASO 1: merchant_order → dejamos en PENDING
+            // ==============================================
             if ("merchant_order".equals(type) && idStr != null) {
 
                 Long merchantOrderId = Long.valueOf(idStr);
@@ -69,9 +73,6 @@ public class WebhookController {
                 String preferenceId = mo.getPreferenceId();
                 System.out.println("MerchantOrder preferenceId=" + preferenceId);
 
-                // -------------------------------
-                // Determinar estado general
-                // -------------------------------
                 String nuevoEstado = "PENDING";
 
                 if (mo.getPayments() != null && !mo.getPayments().isEmpty()) {
@@ -91,28 +92,76 @@ public class WebhookController {
 
                 String finalEstado = nuevoEstado;
 
-                // Actualizar transacción en BD usando preferenceId
                 transaccionRepository.findByPreferenceId(preferenceId)
                         .ifPresent(tx -> {
                             tx.setEstado(finalEstado);
                             transaccionRepository.save(tx);
                             System.out.println("Transacción " + tx.getId()
-                                    + " actualizada a estado = " + finalEstado);
+                                    + " actualizada a estado = " + finalEstado
+                                    + " (merchant_order)");
                         });
             }
 
-            // Si type = payment, de momento solo lo logueamos
-            if ("payment".equals(type)) {
-                System.out.println("Notificación de pago individual (payment id=" + idStr + ")");
-                // Si más adelante quieres consultar PaymentClient, lo hacemos,
-                // pero primero dejemos estable merchant_order + preferenceId.
+            // ==============================================
+            // CASO 2: payment → actualizamos según status
+            // ==============================================
+            if ("payment".equals(type) && idStr != null) {
+
+                Long paymentId = Long.valueOf(idStr);
+
+                PaymentClient paymentClient = new PaymentClient();
+                Payment payment = paymentClient.get(paymentId);
+
+                String status = payment.getStatus();      // approved, rejected, pending...
+                System.out.println("Payment " + paymentId + " status=" + status);
+
+                // Obtenemos el merchant_order desde el pago
+                Long merchantOrderId = payment.getOrder() != null
+                        ? payment.getOrder().getId()
+                        : null;
+
+                String preferenceId = null;
+
+                if (merchantOrderId != null) {
+                    MerchantOrderClient moClient = new MerchantOrderClient();
+                    MerchantOrder mo = moClient.get(merchantOrderId);
+                    preferenceId = mo.getPreferenceId();
+                    System.out.println("Payment " + paymentId +
+                            " pertenece a MerchantOrder " + merchantOrderId +
+                            " preferenceId=" + preferenceId);
+                }
+
+                // Si no logramos sacar preferenceId, no podemos mapear a tu tabla
+                if (preferenceId != null) {
+
+                    String nuevoEstado;
+                    if ("approved".equalsIgnoreCase(status)) {
+                        nuevoEstado = "APPROVED";
+                    } else if ("rejected".equalsIgnoreCase(status)) {
+                        nuevoEstado = "REJECTED";
+                    } else {
+                        nuevoEstado = "PENDING";
+                    }
+
+                    String finalEstado = nuevoEstado;
+
+                    transaccionRepository.findByPreferenceId(preferenceId)
+                            .ifPresent(tx -> {
+                                tx.setEstado(finalEstado);
+                                transaccionRepository.save(tx);
+                                System.out.println("Transacción " + tx.getId()
+                                        + " actualizada a estado = " + finalEstado
+                                        + " (payment)");
+                            });
+                } else {
+                    System.out.println("No se pudo determinar preferenceId para payment " + paymentId);
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // Siempre responde 200 rápido para que MP no reintente
         return ResponseEntity.ok("ok");
     }
 }
