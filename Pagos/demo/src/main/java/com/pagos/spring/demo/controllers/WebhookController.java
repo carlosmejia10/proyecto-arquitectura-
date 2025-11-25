@@ -23,10 +23,11 @@ public class WebhookController {
 
         System.out.println("Webhook MP payload: " + body);
 
-        String type = body.get("type") != null ? body.get("type").toString() : "unknown";
-        Object dataObj = body.get("data");
+        // 1) Intentar leer el formato nuevo: type + data.id
+        String type = body.get("type") != null ? body.get("type").toString() : null;
         String idStr = null;
 
+        Object dataObj = body.get("data");
         if (dataObj instanceof Map<?, ?> dataMap) {
             Object idObj = dataMap.get("id");
             if (idObj != null) {
@@ -34,11 +35,30 @@ public class WebhookController {
             }
         }
 
+        // 2) Si no hay type, revisar formato viejo: topic + resource
+        if (type == null) {
+            Object topicObj = body.get("topic");
+            Object resourceObj = body.get("resource");
+
+            if (topicObj != null) {
+                type = topicObj.toString(); // merchant_order, payment, etc.
+            }
+            if (resourceObj != null) {
+                // Ej: https://api.mercadolibre.com/merchant_orders/35863890558
+                String resource = resourceObj.toString();
+                String[] parts = resource.split("/");
+                idStr = parts[parts.length - 1];
+            }
+        }
+
+        if (type == null) {
+            type = "unknown";
+        }
+
         System.out.println("Webhook type=" + type + " id=" + idStr);
 
         try {
-
-            // Interesa cuando Mercado Pago envía merchant_order
+            // Solo nos interesa merchant_order para actualizar transacciones por preferenceId
             if ("merchant_order".equals(type) && idStr != null) {
 
                 Long merchantOrderId = Long.valueOf(idStr);
@@ -69,25 +89,30 @@ public class WebhookController {
                     }
                 }
 
-                // Para usarlo dentro de la lambda
                 String finalEstado = nuevoEstado;
 
-                // ---------------------------------------------------------
-                // Actualizar transacción en BD usando el preferenceId
-                // ---------------------------------------------------------
+                // Actualizar transacción en BD usando preferenceId
                 transaccionRepository.findByPreferenceId(preferenceId)
                         .ifPresent(tx -> {
                             tx.setEstado(finalEstado);
                             transaccionRepository.save(tx);
-                            System.out.println("Transacción " + tx.getId() +
-                                    " actualizada a estado = " + finalEstado);
+                            System.out.println("Transacción " + tx.getId()
+                                    + " actualizada a estado = " + finalEstado);
                         });
+            }
+
+            // Si type = payment, de momento solo lo logueamos
+            if ("payment".equals(type)) {
+                System.out.println("Notificación de pago individual (payment id=" + idStr + ")");
+                // Si más adelante quieres consultar PaymentClient, lo hacemos,
+                // pero primero dejemos estable merchant_order + preferenceId.
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        // Siempre responde 200 rápido para que MP no reintente
         return ResponseEntity.ok("ok");
     }
 }
