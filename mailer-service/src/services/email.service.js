@@ -4,7 +4,10 @@ import { EmailRepository } from '../repositories/email.repository.js';
 import { renderEmailTemplate } from '../templates/factory.js';
 
 export async function sendGratitudeEmail({ email, nombre, asunto, mensaje, solicitudId, templateType }) {
-  const html = renderEmailTemplate(templateType || 'DEFAULT', { nombre, mensaje, asunto, solicitudId });
+  const html = renderEmailTemplate(templateType || 'DEFAULT', { nombre,
+    mensaje,
+    asunto,
+    solicitudId });
 
   const mailOptions = {
     from: process.env.SMTP_USER,
@@ -14,7 +17,7 @@ export async function sendGratitudeEmail({ email, nombre, asunto, mensaje, solic
   };
 
   const info = await transporter.sendMail(mailOptions);
-  await EmailRepository.createLog({
+   await EmailRepository.createLog({
     to: email,
     subject: mailOptions.subject,
     html,
@@ -24,3 +27,4 @@ export async function sendGratitudeEmail({ email, nombre, asunto, mensaje, solic
 
   return { success: true, messageId: info.messageId || null };
 }
+

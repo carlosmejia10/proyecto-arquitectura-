@@ -1,14 +1,24 @@
 // src/templates/defaultTemplate.js
+
 export function defaultTemplate({
   nombre = 'Usuario',
   mensaje = '',
-  asunto = '',
+  asunto = 'Actualización de tu trámite',
   solicitudId = '',
   dependencia = 'Dirección Administrativa',
   sistema = 'Trámite de Viáticos y Pasajes (TVP)',
   contacto = 'soporte@empresa.com',
   whatsapp = 'https://wa.me/573001112233?text=Hola%20TVP',
-  pie = 'Este es un mensaje automático del sistema TVP. Por favor no responder a este correo.'
+  pie = 'Este es un mensaje automático del sistema TVP. Por favor no responder a este correo.',
+
+  // NUEVOS DATOS DEL TVP
+  monto = '',
+  moneda = 'COP',
+  numeroTarjeta = '',
+  tipoTarjeta = '',
+  estado = '',
+  fechaIda = '',
+  fechaRegreso = ''
 } = {}) {
   const css = `
     body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f6f7f9;color:#222}
@@ -38,21 +48,34 @@ export function defaultTemplate({
         <h1>${sistema}</h1>
         <p>${dependencia}</p>
       </div>
+
       <div class="content">
-        <h2>${asunto || 'Notificación TVP'}</h2>
+        <h2>${asunto}</h2>
 
         ${solicitudId ? `
-          <div class="meta">
-            <div><b>Solicitud:</b> ${solicitudId}</div>
-            <div><b>Titular:</b> ${nombre}</div>
-            <div><b>Estado:</b> En trámite</div>
-          </div>` : ''}
+        <div class="meta">
+          <div><b>Solicitud:</b> ${solicitudId}</div>
+          <div><b>Titular:</b> ${nombre}</div>
+          ${estado ? `<div><b>Estado:</b> ${estado}</div>` : ''}
+        </div>` : ''}
 
         <p>Hola ${nombre.split(' ')[0]},</p>
-        <p>Te compartimos la actualización relacionada con tu trámite en TVP:</p>
+        <p>Esta es la actualización relacionada con tu trámite en el sistema TVP:</p>
 
         <blockquote>${mensaje}</blockquote>
 
+        <!-- DATOS DEL PAQUETE -->
+        ${(fechaIda || fechaRegreso || monto || numeroTarjeta) ? `
+        <div class="meta">
+          ${monto ? `<div><b>Monto:</b> ${monto} ${moneda}</div>` : ''}
+          ${fechaIda ? `<div><b>Fecha de ida:</b> ${fechaIda}</div>` : ''}
+          ${fechaRegreso ? `<div><b>Fecha de regreso:</b> ${fechaRegreso}</div>` : ''}
+
+          ${numeroTarjeta ? `<div><b>Tarjeta:</b> •••• ${String(numeroTarjeta).slice(-4)}</div>` : ''}
+          ${tipoTarjeta ? `<div><b>Tipo de tarjeta:</b> ${tipoTarjeta}</div>` : ''}
+        </div>` : ''}
+        
+        <!-- ACCIONES -->
         <div class="row">
           <a class="btn" href="${whatsapp}" target="_blank">Contactar por WhatsApp</a>
           <a class="btn" href="mailto:${contacto}" target="_blank">Escribir a soporte</a>
@@ -60,6 +83,7 @@ export function defaultTemplate({
 
         <p class="muted">${pie}</p>
       </div>
+
       <div class="footer">
         © ${new Date().getFullYear()} ${dependencia}. Todos los derechos reservados.
       </div>

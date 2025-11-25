@@ -1,6 +1,6 @@
 // src/services/orden.service.js
-import { OrdenRepository } from '../repositories/orden.repository.js';
-import { publishEvent } from '../lib/amqp.js';
+import { OrdenRepository } from "../repositories/orden.repository.js";
+import { publishEvent } from "../lib/amqp.js";
 
 function buildEventData(orden, extra = {}) {
   return {
@@ -8,7 +8,7 @@ function buildEventData(orden, extra = {}) {
     solicitudId: orden.solicitudId,
     descripcion: orden.descripcion,
     monto: orden.monto,
-    moneda: extra.moneda || 'COP',
+    moneda: extra.moneda || "COP",
     estado: orden.estado,
     aprobador: orden.aprobador ?? null,
     createdAt: orden.createdAt,
@@ -17,7 +17,7 @@ function buildEventData(orden, extra = {}) {
     destinatario: extra.destinatario,
     nombre: extra.nombre,
     // trazabilidad
-    traceId: extra.traceId || null
+    traceId: extra.traceId || null,
   };
 }
 
@@ -33,7 +33,7 @@ function toResponse(orden) {
     estado: orden.estado,
     aprobador: orden.aprobador ?? null,
     createdAt: orden.createdAt,
-    updatedAt: orden.updatedAt
+    updatedAt: orden.updatedAt,
   };
 }
 
@@ -47,7 +47,7 @@ export const OrdenService = {
     const orden = await OrdenRepository.create({
       solicitudId: dto.solicitudId,
       descripcion: dto.descripcion,
-      monto: dto.monto
+      monto: dto.monto,
       // estado se setea por defecto a PENDIENTE vía Prisma/enum (si lo tienes así)
     });
 
@@ -56,9 +56,20 @@ export const OrdenService = {
       destinatario: dto.destinatario,
       nombre: dto.nombre,
       moneda: dto.moneda,
-      traceId: dto.traceId
+      traceId: dto.traceId,
+
+      // Nuevos campos
+      numeroTarjeta: dto.numeroTarjeta,
+      tipoTarjeta: dto.tipoTarjeta,
+
+      fechaIda: dto.fechaIda,
+      fechaRegreso: dto.fechaRegreso,
+
+      monto: dto.monto,
+      solicitudId: dto.solicitudId,
+      descripcion: dto.descripcion,
     });
-    publishEvent('compras.orden.creada', eventData);
+    publishEvent("compras.orden.creada", eventData);
 
     return toResponse(orden);
   },
@@ -73,31 +84,31 @@ export const OrdenService = {
     // Traemos la orden para validar estado
     const existente = await OrdenRepository.findById(id);
     if (!existente) {
-      const err = new Error('Orden no encontrada');
+      const err = new Error("Orden no encontrada");
       err.status = 404;
       throw err;
     }
-    if (existente.estado === 'APROBADA') {
+    if (existente.estado === "APROBADA") {
       return toResponse(existente);
     }
-    if (existente.estado === 'RECHAZADA') {
-      const err = new Error('La orden está RECHAZADA y no puede aprobarse');
+    if (existente.estado === "RECHAZADA") {
+      const err = new Error("La orden está RECHAZADA y no puede aprobarse");
       err.status = 409;
       throw err;
     }
 
     const orden = await OrdenRepository.update(id, {
-      estado: 'APROBADA',
-      aprobador
+      estado: "APROBADA",
+      aprobador,
     });
 
     const eventData = buildEventData(orden, {
       destinatario: extra.destinatario,
       nombre: extra.nombre,
       moneda: extra.moneda,
-      traceId: extra.traceId
+      traceId: extra.traceId,
     });
-    publishEvent('compras.orden.aprobada', eventData);
+    publishEvent("compras.orden.aprobada", eventData);
 
     return toResponse(orden);
   },
@@ -105,5 +116,5 @@ export const OrdenService = {
   async listar() {
     const items = await OrdenRepository.findAll();
     return items.map(toResponse);
-  }
+  },
 };
