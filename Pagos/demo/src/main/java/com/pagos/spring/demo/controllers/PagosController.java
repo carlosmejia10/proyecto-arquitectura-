@@ -15,9 +15,8 @@ import java.util.List;
 
 @RestController
 public class PagosController {
-    private static final String URLPUBLICANGROK = "https://ragtimey-unpecked-granville.ngrok-free.dev";
+    private static final String URLPUBLICANGROK = "https://felipelondonocamposvargas.lat";
     public PagosController() {
-        // Configura tu Access Token (usa el de PRUEBAS)
         MercadoPagoConfig.setAccessToken("APP_USR-3929024855587074-112423-f909081a85de94c1c3d1081cca46b270-3013802509");
     }
 
