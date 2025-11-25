@@ -14,15 +14,19 @@ import com.mercadopago.resources.preference.Preference;
 import com.pagos.spring.demo.dtos.PagoRequest;
 import com.pagos.spring.demo.entities.Transaccion;
 import com.pagos.spring.demo.repositories.TransaccionRepository;
+import com.pagos.spring.demo.services.TransaccionPublisher;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
 public class PagosController {
     private final TransaccionRepository transaccionRepository;
+    private final TransaccionPublisher transaccionPublisher;
     private static final String URLPUBLICANGROK = "https://felipelondonocamposvargas.lat";
-    public PagosController(TransaccionRepository transaccionRepository) {
+    public PagosController(TransaccionRepository transaccionRepository, TransaccionPublisher transaccionPublisher) {
          this.transaccionRepository = transaccionRepository;
+          this.transaccionPublisher = transaccionPublisher;
         MercadoPagoConfig.setAccessToken("APP_USR-3929024855587074-112423-f909081a85de94c1c3d1081cca46b270-3013802509");
     }
 
@@ -148,6 +152,53 @@ public String crearPagoDinamico(@RequestBody PagoRequest req) {
     public List<Transaccion> listarPagos() {
     return transaccionRepository.findAll();
         }
+
+
+    @PostMapping("/crearpago-async")
+public String crearPagoDinamicoAsync(@RequestBody PagoRequest req) {
+    try {
+        PreferenceItemRequest item = PreferenceItemRequest.builder()
+                .title(req.getTitulo())
+                .quantity(req.getCantidad())
+                .unitPrice(req.getPrecio())
+                .currencyId("COP")
+                .build();
+
+        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                .success(URLPUBLICANGROK + "/pago/success")
+                .failure(URLPUBLICANGROK + "/pago/failure")
+                .pending(URLPUBLICANGROK + "/pago/pending")
+                .build();
+
+        PreferenceRequest request = PreferenceRequest.builder()
+                .items(List.of(item))
+                .backUrls(backUrls)
+                .autoReturn("approved")
+                .notificationUrl(URLPUBLICANGROK + "/webhook/mp")
+                .build();
+
+        Preference preference = new PreferenceClient().create(request);
+
+        // Construir transacción
+        Transaccion tx = new Transaccion();
+        tx.setPreferenceId(preference.getId());
+        tx.setTitulo(req.getTitulo());
+        tx.setCantidad(req.getCantidad());
+        tx.setMonto(req.getPrecio());
+        tx.setMoneda("COP");
+        tx.setNombre(req.getNombre());
+        tx.setEmail(req.getEmail());
+        tx.setEstado("CREATED");
+
+        // Enviar a la cola ASÍNCRONA
+        transaccionPublisher.enviarTransaccion(tx);
+
+        return preference.getSandboxInitPoint();
+
+    } catch (Exception e) {
+        return "Error al generar link de pago: " + e.getMessage();
+    }
+}
 
 
 
