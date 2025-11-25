@@ -124,7 +124,6 @@ public String crearPagoDinamico(@RequestBody PagoRequest req) {
 
             Preference preference = new PreferenceClient().create(request);
 
-            // 👇 Aquí guardas la transacción en tu BD
             Transaccion tx = new Transaccion();
             tx.setPreferenceId(preference.getId());
             tx.setTitulo(req.getTitulo());
