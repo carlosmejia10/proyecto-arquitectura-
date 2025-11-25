@@ -5,8 +5,10 @@ import java.math.BigDecimal;
 public class PagoRequest {
     private String titulo = "Prueba";
     private Integer cantidad = 1;
-    private BigDecimal precio; // unitPrice
-    // opcional: private String moneda;
+    private BigDecimal precio; 
+     private String nombre;   
+    private String email;
+   
     public Integer getCantidad() {
         return cantidad;
     }
@@ -16,5 +18,10 @@ public class PagoRequest {
     public String getTitulo() {
         return titulo;
     }
-    // getters/setters
+    public String getEmail() {
+        return email;
+    }
+    public String getNombre() {
+        return nombre;
+    }
 }
