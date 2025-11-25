@@ -5,6 +5,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.mercadopago.client.payment.PaymentClient;
+import com.mercadopago.resources.payment.Payment;
+
 @Controller
 public class VistasController {
     @GetMapping("pago/success")
@@ -20,13 +23,31 @@ public class VistasController {
             @RequestParam(value = "transaction_amount", required = false) String transactionAmount,
             Model model) {
 
-        model.addAttribute("paymentId", firstNonNull(paymentId, collectionId));
+        String resolvedPaymentId = firstNonNull(paymentId, collectionId);
+
+        model.addAttribute("paymentId", resolvedPaymentId);
         model.addAttribute("merchantOrderId", merchantOrderId);
         model.addAttribute("preferenceId", preferenceId);
         model.addAttribute("status", firstNonNull(status, collectionStatus));
         model.addAttribute("paymentType", paymentType);
         model.addAttribute("externalReference", externalReference);
         model.addAttribute("transactionAmount", transactionAmount);
+
+        // Si tenemos el id de pago, intentamos traer datos frescos desde Mercado Pago
+        if (resolvedPaymentId != null) {
+            try {
+                Payment payment = new PaymentClient().get(Long.parseLong(resolvedPaymentId));
+                model.addAttribute("status", payment.getStatus());
+                model.addAttribute("paymentType", payment.getPaymentTypeId());
+                model.addAttribute("transactionAmount", payment.getTransactionAmount());
+                if (payment.getOrder() != null) {
+                    model.addAttribute("merchantOrderId", payment.getOrder().getId());
+                }
+                model.addAttribute("externalReference", payment.getExternalReference());
+            } catch (Exception e) {
+                System.out.println("No se pudo cargar el detalle del pago " + resolvedPaymentId + ": " + e.getMessage());
+            }
+        }
 
         return "pagosuccess_vista";
     }
