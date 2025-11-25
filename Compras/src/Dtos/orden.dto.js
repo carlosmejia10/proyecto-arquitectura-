@@ -1,7 +1,6 @@
 import Joi from 'joi';
 
 const Monedas = ['COP', 'USD', 'EUR'];
-const TiposTarjeta = ['CREDITO', 'DEBITO'];
 
 export class CrearOrdenDTO {
   static schema = Joi.object({
@@ -9,45 +8,39 @@ export class CrearOrdenDTO {
       'any.required': 'El campo solicitudId es obligatorio.'
     }),
 
-    descripcion: Joi.string().trim().required(),
-    monto: Joi.number().positive().required(),
+    descripcion: Joi.string().trim().required().messages({
+      'any.required': 'La descripción es obligatoria.'
+    }),
 
-    // Moneda de la orden
+    monto: Joi.number().positive().required().messages({
+      'number.base': 'El monto debe ser numérico.',
+      'number.positive': 'El monto debe ser positivo.',
+      'any.required': 'El monto es obligatorio.'
+    }),
+
     moneda: Joi.string().valid(...Monedas).default('COP'),
 
-    // Fechas del paquete (ida y regreso)
-    fechaIda: Joi.date().iso().required().messages({
-      'any.required': 'El campo fechaIda es obligatorio.',
-      'date.format': 'El campo fechaIda debe estar en formato ISO (YYYY-MM-DD).'
+    destinatario: Joi.string().email().required().messages({
+      'string.email': 'El destinatario debe ser un correo válido.',
+      'any.required': 'El destinatario (correo) es obligatorio.'
     }),
-    fechaRegreso: Joi.date().iso()
-      .min(Joi.ref('fechaIda'))
-      .required()
-      .messages({
-        'any.required': 'El campo fechaRegreso es obligatorio.',
-        'date.min': 'La fechaRegreso debe ser igual o posterior a fechaIda.'
-      }),
 
-    // Datos de tarjeta para el pago
-    numeroTarjeta: Joi.string()
-      .pattern(/^\d{12,19}$/)
-      .required()
-      .messages({
-        'any.required': 'El campo numeroTarjeta es obligatorio.',
-        'string.pattern.base': 'El numeroTarjeta debe tener entre 12 y 19 dígitos numéricos.'
-      }),
+    nombre: Joi.string().trim().max(120).required().messages({
+      'any.required': 'El nombre del solicitante es obligatorio.'
+    }),
 
-    tipoTarjeta: Joi.string()
-      .valid(...TiposTarjeta)
-      .required()
-      .messages({
-        'any.required': 'El campo tipoTarjeta es obligatorio.',
-        'any.only': 'El tipoTarjeta debe ser CREDITO o DEBITO.'
-      }),
+    fechaIda: Joi.date().iso().optional(),
+    fechaRegreso: Joi.date().iso().optional(),
 
-    // Datos para notificación / mailer
-    destinatario: Joi.string().email().optional(),
-    nombre: Joi.string().trim().max(120).optional()
+    traceId: Joi.string().optional(),
+
+    // ⛔ No queremos que la orden reciba datos de tarjeta
+    numeroTarjeta: Joi.forbidden().messages({
+      'any.unknown': 'numeroTarjeta no se debe enviar en la creación de la orden.'
+    }),
+    tipoTarjeta: Joi.forbidden().messages({
+      'any.unknown': 'tipoTarjeta no se debe enviar en la creación de la orden.'
+    })
   })
   .unknown(false);
 
@@ -65,11 +58,15 @@ export class CrearOrdenDTO {
 
 export class AprobarOrdenDTO {
   static schema = Joi.object({
-    aprobador: Joi.string().trim().required(),
+    aprobador: Joi.string().trim().required().messages({
+      'any.required': 'El aprobador es obligatorio.'
+    }),
 
-    moneda: Joi.string().valid(...Monedas).default('COP'),
-    destinatario: Joi.string().email().optional(),
-    nombre: Joi.string().trim().max(120).optional()
+    comentario: Joi.string().trim().max(255).optional(),
+
+    // misma política: la aprobación no toca tarjeta
+    numeroTarjeta: Joi.forbidden(),
+    tipoTarjeta: Joi.forbidden()
   }).unknown(false);
 
   constructor(data) {

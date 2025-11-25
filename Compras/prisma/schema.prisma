@@ -7,19 +7,91 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Cliente {
+  cedula       String      @id
+  nombre       String
+  email        String
+  telefono     String?
+  tarjetas     Tarjeta[]
+  transacciones Transaccion[]
+  carrito      CarritoItem[]
+}
+
+model Paquete {
+  id           Int         @id @default(autoincrement())
+  nombre       String
+  descripcion  String
+  precio       Float
+  moneda       String       @default("USD")
+  fechaIda     DateTime?
+  fechaRegreso DateTime?
+
+  carrito      CarritoItem[]
+  detalles     TransaccionItem[]
+}
+
+model Tarjeta {
+  numero           String   @id
+  cedulaCliente    String
+  tipo             String   // CREDITO | DEBITO
+  saldo            Float    @default(0)
+  fechaVencimiento DateTime
+
+  cliente          Cliente  @relation(fields: [cedulaCliente], references: [cedula])
+  transacciones    Transaccion[]
+}
+
+model CarritoItem {
+  id            Int       @id @default(autoincrement())
+  cedulaCliente String
+  paqueteId     Int
+  cantidad      Int
+
+  cliente       Cliente   @relation(fields: [cedulaCliente], references: [cedula])
+  paquete       Paquete   @relation(fields: [paqueteId], references: [id])
+}
+
+model Transaccion {
+  id             Int              @id @default(autoincrement())
+  cedulaCliente  String
+  numeroTarjeta  String
+  total          Float
+  estado         Estado
+  fecha          DateTime         @default(now())
+
+  cliente        Cliente          @relation(fields: [cedulaCliente], references: [cedula])
+  tarjeta        Tarjeta          @relation(fields: [numeroTarjeta], references: [numero])
+
+  items          TransaccionItem[]
+}
+
+model TransaccionItem {
+  id              Int        @id @default(autoincrement())
+  transaccionId   Int
+  paqueteId       Int
+  cantidad        Int
+  precioUnitario  Float
+  subtotal        Float
+
+  transaccion     Transaccion @relation(fields: [transaccionId], references: [id])
+  paquete         Paquete     @relation(fields: [paqueteId], references: [id])
+}
+
 model OrdenCompra {
-  id              String   @id @default(cuid())
-  solicitudId     String
-  descripcion     String
-  monto           Float
-  estado          Estado   @default(PENDIENTE)
-  aprobador       String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id @default(cuid())
+  solicitudId String
+  descripcion String
+  monto       Float
+  estado      Estado   @default(PENDIENTE)
+  aprobador   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum Estado {
+  EXITOSA
+  RECHAZADA
+  ANULADA
   PENDIENTE
   APROBADA
-  RECHAZADA
 }

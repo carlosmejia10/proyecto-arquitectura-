@@ -1,8 +1,27 @@
-import { prisma } from '../db/prisma.js';
+import { prisma } from '../lib/prisma.js';
 
 export const OrdenRepository = {
-  create: (data) => prisma.ordenCompra.create({ data }),
-  findById: (id) => prisma.ordenCompra.findUnique({ where: { id } }),
-  update: (id, data) => prisma.ordenCompra.update({ where: { id }, data }),
-  findAll: () => prisma.ordenCompra.findMany({ orderBy: { createdAt: 'desc' } })
+  create(data) {
+    return prisma.ordenCompra.create({ data });
+  },
+
+  update(id, data) {
+    return prisma.ordenCompra.update({
+      where: { id },
+      data
+    });
+  },
+
+  findById(id) {
+    return prisma.ordenCompra.findUnique({
+      where: { id }
+    });
+  },
+
+  findAll() {
+    return prisma.ordenCompra.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+  
 };
