@@ -73,7 +73,7 @@ public class WebhookController {
                 String preferenceId = mo.getPreferenceId();
                 System.out.println("MerchantOrder preferenceId=" + preferenceId);
 
-                String nuevoEstado = "PENDING";
+                String nuevoEstado = "PENDINGOO";
 
                 if (mo.getPayments() != null && !mo.getPayments().isEmpty()) {
 
