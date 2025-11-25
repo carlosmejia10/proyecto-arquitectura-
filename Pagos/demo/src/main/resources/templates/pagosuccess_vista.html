@@ -148,8 +148,8 @@
             <div class="subtitle">
                 Aquí tienes el resumen del pedido y los datos asociados a tu transacción.
             </div>
-            <div class="tag" th:if="${db_titulo != null}">
-                <span th:text="'Producto: ' + ${db_titulo}">Producto</span>
+            <div class="tag" th:if="${db_titulo}">
+                <span th:text="${'Producto: ' + db_titulo}">Producto</span>
             </div>
         </div>
     </div>
@@ -159,31 +159,31 @@
     <div class="summary">
         <div class="pill">
             <label>Nombre</label>
-            <span th:text="${db_nombre} != null ? db_nombre : 'No disponible'">--</span>
+            <span th:text="${db_nombre} ?: 'No disponible'">--</span>
         </div>
         <div class="pill">
             <label>Correo electrónico</label>
-            <span th:text="${db_email} != null ? db_email : 'No disponible'">--</span>
+            <span th:text="${db_email} ?: 'No disponible'">--</span>
         </div>
         <div class="pill">
             <label>Producto / servicio</label>
-            <span th:text="${db_titulo} != null ? db_titulo : 'No disponible'">--</span>
+            <span th:text="${db_titulo} ?: 'No disponible'">--</span>
         </div>
         <div class="pill">
             <label>Cantidad</label>
-            <span th:text="${db_cantidad} != null ? db_cantidad : 'No disponible'">--</span>
+            <span th:text="${db_cantidad} ?: 'No disponible'">--</span>
         </div>
         <div class="pill">
             <label>Monto total (BD)</label>
-            <span th:text="${db_monto} != null ? db_monto : 'No disponible'">--</span>
+            <span th:text="${db_monto} ?: 'No disponible'">--</span>
         </div>
         <div class="pill">
             <label>Moneda</label>
-            <span th:text="${db_moneda} != null ? db_moneda : 'COP'">--</span>
+            <span th:text="${db_moneda} ?: 'COP'">--</span>
         </div>
         <div class="pill">
             <label>Estado en tu sistema</label>
-            <span th:text="${db_estado} != null ? db_estado : 'No disponible'">--</span>
+            <span th:text="${db_estado} ?: 'No disponible'">--</span>
         </div>
     </div>
 
@@ -192,31 +192,31 @@
     <div class="summary">
         <div class="pill">
             <label>ID de pago</label>
-            <span th:text="${paymentId} != null ? paymentId : 'No recibido'">--</span>
+            <span th:text="${paymentId} ?: 'No recibido'">--</span>
         </div>
         <div class="pill">
             <label>Estado del pago</label>
-            <span th:text="${status} != null ? status : 'No recibido'">--</span>
+            <span th:text="${status} ?: 'No recibido'">--</span>
         </div>
         <div class="pill">
             <label>Tipo de pago</label>
-            <span th:text="${paymentType} != null ? paymentType : 'No recibido'">--</span>
+            <span th:text="${paymentType} ?: 'No recibido'">--</span>
         </div>
         <div class="pill">
             <label>Monto reportado por MP</label>
-            <span th:text="${transactionAmount} != null ? transactionAmount : 'No recibido'">--</span>
+            <span th:text="${transactionAmount} ?: 'No recibido'">--</span>
         </div>
         <div class="pill">
             <label>ID de orden (Merchant Order)</label>
-            <span th:text="${merchantOrderId} != null ? merchantOrderId : 'No recibido'">--</span>
+            <span th:text="${merchantOrderId} ?: 'No recibido'">--</span>
         </div>
         <div class="pill">
             <label>ID de preferencia</label>
-            <span th:text="${preferenceId} != null ? preferenceId : 'No recibido'">--</span>
+            <span th:text="${preferenceId} ?: 'No recibido'">--</span>
         </div>
         <div class="pill">
             <label>Referencia externa</label>
-            <span th:text="${externalReference} != null ? externalReference : 'No recibido'">--</span>
+            <span th:text="${externalReference} ?: 'No recibido'">--</span>
         </div>
     </div>
 
@@ -233,61 +233,61 @@
             <!-- Datos de tu BD -->
             <tr>
                 <td>Nombre del cliente</td>
-                <td th:text="${db_nombre} != null ? db_nombre : 'No disponible'">--</td>
+                <td th:text="${db_nombre} ?: 'No disponible'">--</td>
             </tr>
             <tr>
                 <td>Correo</td>
-                <td th:text="${db_email} != null ? db_email : 'No disponible'">--</td>
+                <td th:text="${db_email} ?: 'No disponible'">--</td>
             </tr>
             <tr>
                 <td>Producto / servicio</td>
-                <td th:text="${db_titulo} != null ? db_titulo : 'No disponible'">--</td>
+                <td th:text="${db_titulo} ?: 'No disponible'">--</td>
             </tr>
             <tr>
                 <td>Cantidad</td>
-                <td th:text="${db_cantidad} != null ? db_cantidad : 'No disponible'">--</td>
+                <td th:text="${db_cantidad} ?: 'No disponible'">--</td>
             </tr>
             <tr>
                 <td>Monto (BD)</td>
-                <td th:text="${db_monto} != null ? db_monto : 'No disponible'">--</td>
+                <td th:text="${db_monto} ?: 'No disponible'">--</td>
             </tr>
             <tr>
                 <td>Moneda</td>
-                <td th:text="${db_moneda} != null ? db_moneda : 'COP'">--</td>
+                <td th:text="${db_moneda} ?: 'COP'">--</td>
             </tr>
             <tr>
                 <td>Estado en BD</td>
-                <td th:text="${db_estado} != null ? db_estado : 'No disponible'">--</td>
+                <td th:text="${db_estado} ?: 'No disponible'">--</td>
             </tr>
 
             <!-- Datos de Mercado Pago -->
             <tr>
                 <td>ID de pago / collection</td>
-                <td th:text="${paymentId} != null ? paymentId : 'No recibido'">--</td>
+                <td th:text="${paymentId} ?: 'No recibido'">--</td>
             </tr>
             <tr>
                 <td>Estado del pago</td>
-                <td th:text="${status} != null ? status : 'No recibido'">--</td>
+                <td th:text="${status} ?: 'No recibido'">--</td>
             </tr>
             <tr>
                 <td>Tipo de pago</td>
-                <td th:text="${paymentType} != null ? paymentType : 'No recibido'">--</td>
+                <td th:text="${paymentType} ?: 'No recibido'">--</td>
             </tr>
             <tr>
                 <td>Monto (MP)</td>
-                <td th:text="${transactionAmount} != null ? transactionAmount : 'No recibido'">--</td>
+                <td th:text="${transactionAmount} ?: 'No recibido'">--</td>
             </tr>
             <tr>
                 <td>ID de orden</td>
-                <td th:text="${merchantOrderId} != null ? merchantOrderId : 'No recibido'">--</td>
+                <td th:text="${merchantOrderId} ?: 'No recibido'">--</td>
             </tr>
             <tr>
                 <td>Preferencia</td>
-                <td th:text="${preferenceId} != null ? preferenceId : 'No recibido'">--</td>
+                <td th:text="${preferenceId} ?: 'No recibido'">--</td>
             </tr>
             <tr>
                 <td>Referencia externa</td>
-                <td th:text="${externalReference} != null ? externalReference : 'No recibido'">--</td>
+                <td th:text="${externalReference} ?: 'No recibido'">--</td>
             </tr>
             </tbody>
         </table>
@@ -303,7 +303,7 @@
     <div class="debug" th:if="${queryParams != null}">
         <div><strong>Query params recibidos:</strong></div>
         <div th:each="entry : ${queryParams}">
-            <code th:text="${entry.key} + ' = ' + ${entry.value}"></code>
+            <code th:text="${entry.key + ' = ' + entry.value}"></code>
         </div>
         <div th:if="${paymentFetchError != null}" style="color:#f87171; margin-top:8px;">
             Error al consultar pago: <span th:text="${paymentFetchError}"></span>

@@ -26,67 +26,72 @@ public class VistasController {
     }
 
     @GetMapping("pago/success")
-    public String successPago(
-            @RequestParam(value = "payment_id", required = false) String paymentId,
-            @RequestParam(value = "collection_id", required = false) String collectionId,
-            @RequestParam(value = "merchant_order_id", required = false) String merchantOrderId,
-            @RequestParam(value = "preference_id", required = false) String preferenceId,
-            @RequestParam(value = "status", required = false) String status,
-            @RequestParam(value = "collection_status", required = false) String collectionStatus,
-            @RequestParam(value = "payment_type", required = false) String paymentType,
-            @RequestParam(value = "external_reference", required = false) String externalReference,
-            @RequestParam(value = "transaction_amount", required = false) String transactionAmount,
-            Model model,
-            HttpServletRequest request) {
+public String successPago(
+        @RequestParam(value = "payment_id", required = false) String paymentId,
+        @RequestParam(value = "collection_id", required = false) String collectionId,
+        @RequestParam(value = "merchant_order_id", required = false) String merchantOrderId,
+        @RequestParam(value = "preference_id", required = false) String preferenceId,
+        @RequestParam(value = "status", required = false) String status,
+        @RequestParam(value = "collection_status", required = false) String collectionStatus,
+        @RequestParam(value = "payment_type", required = false) String paymentType,
+        @RequestParam(value = "external_reference", required = false) String externalReference,
+        @RequestParam(value = "transaction_amount", required = false) String transactionAmount,
+        Model model,
+        HttpServletRequest request) {
 
-        String resolvedPaymentId = (paymentId != null) ? paymentId : collectionId;
+    String resolvedPaymentId = (paymentId != null) ? paymentId : collectionId;
+    String resolvedStatus = (status != null) ? status : collectionStatus;
 
-        // Guardar todos los query params
-        Map<String, String> params = request.getParameterMap().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.join(",", e.getValue())));
-        model.addAttribute("queryParams", params);
+    // 0) Siempre cargamos lo que viene por query params al modelo
+    model.addAttribute("paymentId", resolvedPaymentId);
+    model.addAttribute("merchantOrderId", merchantOrderId);
+    model.addAttribute("preferenceId", preferenceId);
+    model.addAttribute("status", resolvedStatus);
+    model.addAttribute("paymentType", paymentType);
+    model.addAttribute("externalReference", externalReference);
+    model.addAttribute("transactionAmount", transactionAmount);
 
-        // =============================================
-        // 1) Cargar datos desde tu BD usando PreferenceId
-        // =============================================
-        if (preferenceId != null) {
-            transaccionRepository.findByPreferenceId(preferenceId).ifPresent(tx -> {
-                model.addAttribute("db_nombre", tx.getNombre());
-                model.addAttribute("db_email", tx.getEmail());
-                model.addAttribute("db_titulo", tx.getTitulo());
-                model.addAttribute("db_monto", tx.getMonto());
-                model.addAttribute("db_moneda", tx.getMoneda());
-                model.addAttribute("db_cantidad", tx.getCantidad());
-                model.addAttribute("db_estado", tx.getEstado());
-            });
-        }
+    // Query params para debug
+    Map<String, String> params = request.getParameterMap().entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> String.join(",", e.getValue())));
+    model.addAttribute("queryParams", params);
 
-        // =============================================
-        // 2) Cargar datos frescos desde Mercado Pago
-        // =============================================
-        if (resolvedPaymentId != null) {
-            try {
-                Payment payment = new PaymentClient().get(Long.parseLong(resolvedPaymentId));
-
-                model.addAttribute("paymentId", resolvedPaymentId);
-                model.addAttribute("status", payment.getStatus());
-                model.addAttribute("paymentType", payment.getPaymentTypeId());
-                model.addAttribute("transactionAmount", payment.getTransactionAmount());
-
-                if (payment.getOrder() != null) {
-                    model.addAttribute("merchantOrderId", payment.getOrder().getId());
-                }
-
-                model.addAttribute("externalReference", payment.getExternalReference());
-
-            } catch (Exception e) {
-                System.out.println("No se pudo cargar payment: " + e.getMessage());
-                model.addAttribute("paymentFetchError", e.getMessage());
-            }
-        }
-
-        return "pagosuccess_vista";
+    // 1) Cargar datos desde tu BD usando preferenceId
+    if (preferenceId != null) {
+        transaccionRepository.findByPreferenceId(preferenceId).ifPresent(tx -> {
+            model.addAttribute("db_nombre", tx.getNombre());
+            model.addAttribute("db_email", tx.getEmail());
+            model.addAttribute("db_titulo", tx.getTitulo());
+            model.addAttribute("db_monto", tx.getMonto());
+            model.addAttribute("db_moneda", tx.getMoneda());
+            model.addAttribute("db_cantidad", tx.getCantidad());
+            model.addAttribute("db_estado", tx.getEstado());
+        });
     }
+
+    // 2) Intentar sobrescribir con datos frescos de Mercado Pago
+    if (resolvedPaymentId != null) {
+        try {
+            Payment payment = new PaymentClient().get(Long.parseLong(resolvedPaymentId));
+
+            model.addAttribute("status", payment.getStatus());
+            model.addAttribute("paymentType", payment.getPaymentTypeId());
+            model.addAttribute("transactionAmount", payment.getTransactionAmount());
+
+            if (payment.getOrder() != null) {
+                model.addAttribute("merchantOrderId", payment.getOrder().getId());
+            }
+
+            model.addAttribute("externalReference", payment.getExternalReference());
+
+        } catch (Exception e) {
+            System.out.println("No se pudo cargar payment: " + e.getMessage());
+            model.addAttribute("paymentFetchError", e.getMessage());
+        }
+    }
+
+    return "pagosuccess_vista";
+}
 
     @GetMapping("pago/pending")
     public String pendingPago() { return "pagopending_vista"; }
