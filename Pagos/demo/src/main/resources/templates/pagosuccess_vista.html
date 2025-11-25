@@ -107,6 +107,16 @@
             color: #94a3b8;
             font-size: 14px;
         }
+        .debug {
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #111827;
+            border: 1px dashed #334155;
+            color: #cbd5e1;
+            font-size: 13px;
+        }
+        .debug code { color: #22d3ee; }
     </style>
 </head>
 <body>
@@ -181,6 +191,16 @@
 
         <div class="footer">
             Guarda estos datos como comprobante. Si necesitas algo mas, puedes volver al comercio.
+        </div>
+
+        <div class="debug" th:if="${queryParams != null}">
+            <div><strong>Query params recibidos:</strong></div>
+            <div th:each="entry : ${queryParams}">
+                <code th:text="${entry.key} + ' = ' + ${entry.value}"></code>
+            </div>
+            <div th:if="${paymentFetchError != null}" style="color:#f87171; margin-top:8px;">
+                Error al consultar pago: <span th:text="${paymentFetchError}"></span>
+            </div>
         </div>
     </div>
 </body>

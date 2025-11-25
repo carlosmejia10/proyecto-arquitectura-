@@ -1,5 +1,8 @@
 package com.pagos.spring.demo.controllers;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.resources.payment.Payment;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class VistasController {
@@ -21,7 +26,8 @@ public class VistasController {
             @RequestParam(value = "payment_type", required = false) String paymentType,
             @RequestParam(value = "external_reference", required = false) String externalReference,
             @RequestParam(value = "transaction_amount", required = false) String transactionAmount,
-            Model model) {
+            Model model,
+            HttpServletRequest request) {
 
         String resolvedPaymentId = firstNonNull(paymentId, collectionId);
 
@@ -32,6 +38,11 @@ public class VistasController {
         model.addAttribute("paymentType", paymentType);
         model.addAttribute("externalReference", externalReference);
         model.addAttribute("transactionAmount", transactionAmount);
+
+        // Debug: guardar todos los query params que llegaron
+        Map<String, String> params = request.getParameterMap().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> String.join(",", e.getValue())));
+        model.addAttribute("queryParams", params);
 
         // Si tenemos el id de pago, intentamos traer datos frescos desde Mercado Pago
         if (resolvedPaymentId != null) {
@@ -46,6 +57,7 @@ public class VistasController {
                 model.addAttribute("externalReference", payment.getExternalReference());
             } catch (Exception e) {
                 System.out.println("No se pudo cargar el detalle del pago " + resolvedPaymentId + ": " + e.getMessage());
+                model.addAttribute("paymentFetchError", e.getMessage());
             }
         }
 
