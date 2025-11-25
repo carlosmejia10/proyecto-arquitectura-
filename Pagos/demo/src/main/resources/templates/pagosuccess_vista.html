@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago aprobado</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh;
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1f2937 55%, #111827);
+            color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+        }
+        .card {
+            width: 100%;
+            max-width: 820px;
+            background: #0b1220;
+            border: 1px solid #1f2937;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: linear-gradient(120deg, #22c55e, #16a34a);
+            color: #0b1220;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .title {
+            font-size: 26px;
+            font-weight: 800;
+            color: #f8fafc;
+        }
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .summary-section-title {
+            margin-top: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #9ca3af;
+        }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin: 12px 0 18px;
+        }
+        .pill {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 12px;
+        }
+        .pill label {
+            display: block;
+            color: #6b7280;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+        .pill span {
+            font-weight: 700;
+            color: #e5e7eb;
+            word-break: break-word;
+        }
+        .details {
+            margin-top: 6px;
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+            overflow: hidden;
+        }
+        .details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details th, .details td {
+            padding: 12px 14px;
+            text-align: left;
+        }
+        .details th {
+            background: #111827;
+            color: #9ca3af;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .details tr:nth-child(odd) td {
+            background: #0d1423;
+        }
+        .details tr:nth-child(even) td {
+            background: #0b1220;
+        }
+        .footer {
+            margin-top: 18px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        .debug {
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #111827;
+            border: 1px dashed #334155;
+            color: #cbd5e1;
+            font-size: 13px;
+        }
+        .debug code { color: #22d3ee; }
+        .tag {
+            display: inline-flex;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border: 1px solid #22c55e33;
+            color: #bbf7d0;
+            background: #022c2277;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <div class="badge">Pago aprobado</div>
+        <div>
+            <div class="title">Gracias, tu pago se registró correctamente.</div>
+            <div class="subtitle">
+                Aquí tienes el resumen del pedido y los datos asociados a tu transacción.
+            </div>
+            <div class="tag" th:if="${db_titulo}">
+                <span th:text="${'Producto: ' + db_titulo}">Producto</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloque: Datos del cliente (desde tu BD) -->
+    <div class="summary-section-title">Datos del cliente (tu sistema)</div>
+    <div class="summary">
+        <div class="pill">
+            <label>Nombre</label>
+            <span th:text="${db_nombre} ?: 'No disponible'">--</span>
+        </div>
+        <div class="pill">
+            <label>Correo electrónico</label>
+            <span th:text="${db_email} ?: 'No disponible'">--</span>
+        </div>
+        <div class="pill">
+            <label>Producto / servicio</label>
+            <span th:text="${db_titulo} ?: 'No disponible'">--</span>
+        </div>
+        <div class="pill">
+            <label>Cantidad</label>
+            <span th:text="${db_cantidad} ?: 'No disponible'">--</span>
+        </div>
+        <div class="pill">
+            <label>Monto total (BD)</label>
+            <span th:text="${db_monto} ?: 'No disponible'">--</span>
+        </div>
+        <div class="pill">
+            <label>Moneda</label>
+            <span th:text="${db_moneda} ?: 'COP'">--</span>
+        </div>
+        <div class="pill">
+            <label>Estado en tu sistema</label>
+            <span th:text="${db_estado} ?: 'No disponible'">--</span>
+        </div>
+    </div>
+
+    <!-- Bloque: Datos del pago (desde Mercado Pago) -->
+    <div class="summary-section-title">Datos del pago (Mercado Pago)</div>
+    <div class="summary">
+        <div class="pill">
+            <label>ID de pago</label>
+            <span th:text="${paymentId} ?: 'No recibido'">--</span>
+        </div>
+        <div class="pill">
+            <label>Estado del pago</label>
+            <span th:text="${status} ?: 'No recibido'">--</span>
+        </div>
+        <div class="pill">
+            <label>Tipo de pago</label>
+            <span th:text="${paymentType} ?: 'No recibido'">--</span>
+        </div>
+        <div class="pill">
+            <label>Monto reportado por MP</label>
+            <span th:text="${transactionAmount} ?: 'No recibido'">--</span>
+        </div>
+        <div class="pill">
+            <label>ID de orden (Merchant Order)</label>
+            <span th:text="${merchantOrderId} ?: 'No recibido'">--</span>
+        </div>
+        <div class="pill">
+            <label>ID de preferencia</label>
+            <span th:text="${preferenceId} ?: 'No recibido'">--</span>
+        </div>
+        <div class="pill">
+            <label>Referencia externa</label>
+            <span th:text="${externalReference} ?: 'No recibido'">--</span>
+        </div>
+    </div>
+
+    <!-- Tabla detalle unificada -->
+    <div class="details">
+        <table>
+            <thead>
+            <tr>
+                <th>Campo</th>
+                <th>Valor</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Datos de tu BD -->
+            <tr>
+                <td>Nombre del cliente</td>
+                <td th:text="${db_nombre} ?: 'No disponible'">--</td>
+            </tr>
+            <tr>
+                <td>Correo</td>
+                <td th:text="${db_email} ?: 'No disponible'">--</td>
+            </tr>
+            <tr>
+                <td>Producto / servicio</td>
+                <td th:text="${db_titulo} ?: 'No disponible'">--</td>
+            </tr>
+            <tr>
+                <td>Cantidad</td>
+                <td th:text="${db_cantidad} ?: 'No disponible'">--</td>
+            </tr>
+            <tr>
+                <td>Monto (BD)</td>
+                <td th:text="${db_monto} ?: 'No disponible'">--</td>
+            </tr>
+            <tr>
+                <td>Moneda</td>
+                <td th:text="${db_moneda} ?: 'COP'">--</td>
+            </tr>
+            <tr>
+                <td>Estado en BD</td>
+                <td th:text="${db_estado} ?: 'No disponible'">--</td>
+            </tr>
+
+            <!-- Datos de Mercado Pago -->
+            <tr>
+                <td>ID de pago / collection</td>
+                <td th:text="${paymentId} ?: 'No recibido'">--</td>
+            </tr>
+            <tr>
+                <td>Estado del pago</td>
+                <td th:text="${status} ?: 'No recibido'">--</td>
+            </tr>
+            <tr>
+                <td>Tipo de pago</td>
+                <td th:text="${paymentType} ?: 'No recibido'">--</td>
+            </tr>
+            <tr>
+                <td>Monto (MP)</td>
+                <td th:text="${transactionAmount} ?: 'No recibido'">--</td>
+            </tr>
+            <tr>
+                <td>ID de orden</td>
+                <td th:text="${merchantOrderId} ?: 'No recibido'">--</td>
+            </tr>
+            <tr>
+                <td>Preferencia</td>
+                <td th:text="${preferenceId} ?: 'No recibido'">--</td>
+            </tr>
+            <tr>
+                <td>Referencia externa</td>
+                <td th:text="${externalReference} ?: 'No recibido'">--</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Guarda esta información como comprobante de tu pago.
+        <br/>
+        Si tienes dudas o necesitas soporte, comunícate con el comercio indicando el <strong>ID de pago</strong> y el
+        <strong>producto</strong>.
+    </div>
+
+    <div class="debug" th:if="${queryParams != null}">
+        <div><strong>Query params recibidos:</strong></div>
+        <div th:each="entry : ${queryParams}">
+            <code th:text="${entry.key + ' = ' + entry.value}"></code>
+        </div>
+        <div th:if="${paymentFetchError != null}" style="color:#f87171; margin-top:8px;">
+            Error al consultar pago: <span th:text="${paymentFetchError}"></span>
+        </div>
+    </div>
+</div>
+</body>
+</html>

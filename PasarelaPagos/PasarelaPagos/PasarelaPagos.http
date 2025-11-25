@@ -1,6 +1,0 @@
-@PasarelaPagos_HostAddress = http://localhost:5142
-
-GET {{PasarelaPagos_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

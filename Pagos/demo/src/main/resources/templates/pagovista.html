@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Transacciones - Panel</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #020617;
+            color: #e5e7eb;
+            padding: 24px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #9ca3af;
+            margin-bottom: 18px;
+        }
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 10px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .btn-danger {
+            background: #b91c1c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .table-wrapper {
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+            overflow: hidden;
+            background: #020617;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 13px;
+        }
+        th {
+            background: #0f172a;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 11px;
+        }
+        tr:nth-child(odd) td {
+            background: #020617;
+        }
+        tr:nth-child(even) td {
+            background: #020617;
+        }
+        tr:hover td {
+            background: #111827;
+        }
+        .badge-status {
+            display: inline-flex;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .badge-approved {
+            background: #022c22;
+            color: #bbf7d0;
+            border: 1px solid #16a34a55;
+        }
+        .badge-pending {
+            background: #1e293b;
+            color: #e5e7eb;
+            border: 1px solid #64748b55;
+        }
+        .badge-rejected {
+            background: #450a0a;
+            color: #fecaca;
+            border: 1px solid #ef444455;
+        }
+        .empty-state {
+            padding: 16px;
+            text-align: center;
+            color: #9ca3af;
+        }
+        .id-col {
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: 12px;
+            color: #e5e7eb;
+        }
+        .money {
+            font-weight: 600;
+        }
+        .pill {
+            display: inline-flex;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid #4b556355;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Transacciones registradas</h1>
+    <div class="subtitle">
+        Aquí puedes ver las transacciones guardadas en tu base de datos, revisar su estado o eliminarlas.
+    </div>
+
+    <div class="toolbar">
+        <div class="pill">
+            Total registros: <span th:text="${#lists.size(transacciones)}" style="margin-left:4px;">0</span>
+        </div>
+
+        <form th:action="@{/pagovista/delete-all}" method="post"
+              onsubmit="return confirm('¿Seguro que deseas eliminar TODAS las transacciones?');">
+            <button type="submit" class="btn btn-danger">
+                Eliminar todas
+            </button>
+        </form>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Preference ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Producto</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Creada</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(transacciones)}">
+                <td colspan="9" class="empty-state">
+                    No hay transacciones registradas todavía.
+                </td>
+            </tr>
+
+            <tr th:each="tx : ${transacciones}">
+                <td class="id-col" th:text="${tx.id}">1</td>
+                <td class="id-col" th:text="${tx.preferenceId}">pref-xxx</td>
+                <td th:text="${tx.nombre}">Nombre</td>
+                <td th:text="${tx.email}">correo@ejemplo.com</td>
+                <td th:text="${tx.titulo}">Producto</td>
+                <td class="money"
+                    th:text="${tx.monto} + ' ' + (${tx.moneda} != null ? tx.moneda : 'COP')">
+                    0 COP
+                </td>
+                <td>
+                    <span th:switch="${tx.estado != null ? tx.estado.toUpperCase() : 'DESCONOCIDO'}">
+                        <span th:case="'APPROVED'" class="badge-status badge-approved">APROBADO</span>
+                        <span th:case="'PENDING'" class="badge-status badge-pending">PENDIENTE</span>
+                        <span th:case="'REJECTED'" class="badge-status badge-rejected">RECHAZADO</span>
+                        <span th:case="*"
+                              class="badge-status badge-pending"
+                              th:text="${tx.estado} != null ? tx.estado : 'DESCONOCIDO'">
+                            DESCONOCIDO
+                        </span>
+                    </span>
+                </td>
+                <td th:text="${tx.creadaEn}">2025-11-25T10:00:00Z</td>
+                <td>
+                    <form th:action="@{/pagovista/delete/{id}(id=${tx.id})}"
+                          method="post"
+                          onsubmit="return confirm('¿Eliminar esta transacción?');">
+                        <button type="submit" class="btn btn-danger btn-small">
+                            Eliminar
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
