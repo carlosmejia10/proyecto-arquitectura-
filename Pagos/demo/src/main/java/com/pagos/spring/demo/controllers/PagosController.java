@@ -1,6 +1,8 @@
 package com.pagos.spring.demo.controllers;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mercadopago.MercadoPagoConfig;
@@ -9,6 +11,7 @@ import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.resources.preference.Preference;
+import com.pagos.spring.demo.dtos.PagoRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -60,5 +63,40 @@ public class PagosController {
             return "Error al generar link de pago: " + e.getMessage();
         }
     }
+
+    @PostMapping("/crearpago")
+public String crearPagoDinamico(@RequestBody PagoRequest req) {
+    try {
+        PreferenceItemRequest item = PreferenceItemRequest.builder()
+                .title(req.getTitulo())
+                .quantity(req.getCantidad())
+                .unitPrice(req.getPrecio())
+                .currencyId("COP") // o req.getMoneda() si lo agregas
+                .build();
+
+        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                .success(URLPUBLICANGROK + "/pago/success")
+                .failure(URLPUBLICANGROK + "/pago/failure")
+                .pending(URLPUBLICANGROK + "/pago/pending")
+                .build();
+
+        PreferenceRequest request = PreferenceRequest.builder()
+                .items(List.of(item))
+                .backUrls(backUrls)
+                .autoReturn("approved")
+                .notificationUrl(URLPUBLICANGROK + "/webhook/mp")
+                .build();
+
+        Preference preference = new PreferenceClient().create(request);
+        return preference.getSandboxInitPoint();
+    } catch (Exception e) {
+        return "Error al generar link de pago: " + e.getMessage();
+    }
+}
+
+
+    
+
+
 
 }
