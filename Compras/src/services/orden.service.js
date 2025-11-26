@@ -30,11 +30,11 @@ export const OrdenService = {
 
     // 3. Armamos datos para webhook de pago externo
     const pagoData = {
-      titulo: `Pago orden ${orden.solicitudId}`,
+      titulo: "Pago orden",
       cantidad: 1,
       precio: orden.monto,
       nombre: orden.aprobador || "Administrador",
-      email: "notificaciones@tvp.com" // puedes poner un campo real si lo tienes
+      email: orden.email // puedes poner un campo real si lo tienes
     };
 
     // 4. Enviamos al servicio externo

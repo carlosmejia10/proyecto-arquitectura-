@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export async function enviarPagoExterno(datos) {
   try {
-    const URL = "https://felipelondonocamposvargas/crearpago1"; 
+    const URL = "https://felipelondonocamposvargas.lat/crearpago-async"; 
     // si es http:// o https://, cámbialo arriba
 
     const res = await axios.post(URL, datos, {

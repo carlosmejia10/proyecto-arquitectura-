@@ -82,6 +82,7 @@ model OrdenCompra {
   solicitudId String
   descripcion String
   monto       Float
+  moneda      String   @default("COP")   // <── AÑADIR ESTO
   estado      Estado   @default(PENDIENTE)
   aprobador   String?
   createdAt   DateTime @default(now())
@@ -89,9 +90,9 @@ model OrdenCompra {
 }
 
 enum Estado {
-  EXITOSA
-  RECHAZADA
-  ANULADA
   PENDIENTE
   APROBADA
+  RECHAZADA
+  EXITOSA
+  ANULADA
 }
