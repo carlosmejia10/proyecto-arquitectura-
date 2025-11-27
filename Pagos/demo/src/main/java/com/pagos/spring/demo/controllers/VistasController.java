@@ -98,6 +98,9 @@ public String successPago(
 
     @GetMapping("pago/failure")
     public String failurePago() { return "pagofailure_vista"; }
+    
+        @GetMapping("prueba")
+    public String Login() { return "Login"; }
 
      @GetMapping("/pagovista")
     public String verTransacciones(Model model) {
