@@ -13,7 +13,7 @@ public class NotificacionPagoClient {
     private final RestTemplate restTemplate = new RestTemplate();
 
     // URL del microservicio de mensajes (puerto 13131)
-    @Value("${notificaciones.pago-aprobado.url:http://localhost:13131/api/notificaciones/pago-aprobado}")
+    @Value("${notificaciones.pago-aprobado.url:https://mensajesarqui.onrender.com/api/notificaciones/pago-aprobado}")
     private String notificacionUrl;
 
     public void enviar(NotificacionPagoDTO dto) {
