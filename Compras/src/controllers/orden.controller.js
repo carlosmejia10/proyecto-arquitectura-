@@ -65,4 +65,20 @@ export const OrdenController = {
       next(err);
     }
   },
+  async obtenerPorId(req, res) {
+    try {
+      const { id } = req.params;
+      const orden = await OrdenService.obtenerPorId(id);
+      
+      if (!orden) {
+        return res.status(404).json({ error: 'Orden no encontrada' });
+      }
+      
+      res.json(orden);
+    } catch (error) {
+      console.error('Error obteniendo orden:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  }
 };
+  
